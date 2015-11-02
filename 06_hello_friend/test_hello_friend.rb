@@ -1,5 +1,5 @@
 require './test_helper'
-require 'friend'
+require 'hello_friend'
 
 class TestFriend < MiniTest::Test
   # 'setup' gets run before each individual test
