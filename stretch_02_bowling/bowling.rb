@@ -1,71 +1,54 @@
+require 'pry'
+
 class Game
-	def initialize
+	def initialize()
 	end
 
-	def score(score_array, score = 0, index = 0, frame = 1, ball = 1, double_turns = 0)
-		if score_array[index] != nil
-			
-			if ball == 1 && score_array[index] == 10
-				if double_turns >= 3 then
-					score += 30
-					double_turns -= 1
-				elsif double_turns > 0 then
-					score += 20
-					double_turns -= 1
-				else score += 10
-				end
-				double_turns += 2
-				index += 1
-				frame += 1
-				score(score_array, score, index, frame, ball, double_turns)
-			
-			elsif ball == 1
-				if double_turns >= 3 then
-					score += 3 * score_array[index]
-					double_turns -= 1
-				elsif double_turns > 0 then
-					score += 2 * score_array[index]
-					double_turns -= 1
-				else score += score_array[index]
-				end
-				index += 1
-				ball = 2
-				score(score_array, score, index, frame, ball, double_turns)
-			
-			elsif ball == 2 && score_array[index] + score_array[index - 1] == 10
-				if double_turns >= 3 then
-					score += 3 * score_array[index]
-					double_turns -= 1
-				elsif double_turns > 0 then
-					score += 2 * score_array[index]
-					double_turns -= 1
-				else score += score_array[index]
-				end
-				double_turns += 1
-				index += 1
-				frame += 1
-				ball = 1
-				score(score_array, score, index, frame, ball, double_turns)
+	@@frames = []
 
-			elsif ball == 2
-				if double_turns >= 3 then
-					score += 3 * score_array[index]
-					double_turns -= 1
-				elsif double_turns > 0 then
-					score += 2 * score_array[index]
-					double_turns -= 1
-				else score += score_array[index]
-				end
-				index += 1
-				frame += 1
-				ball = 1
-				score(score_array, score, index, frame, ball, double_turns)
+	def score(score_array, frame_number = 1, index = 0, ball = 1) #ANALYZES SCORE ARRAY
+		length = score_array.length
+		if length == index
+			return 'done'
+		end
+		ball_score = score_array[index]
+		puts ball_score
+		if ball == 1 then
+			if ball_score == 10 then #STRIKE
+				@@frames << Frame.new(frame_number, ball_score, "strike") # ADD STRIKE FRAME
+				score(score_array, frame_number + 1, index + 1, ball)
+			else #GO TO BALL 2
+				#binding.pry
+				score(score_array, frame_number, index + 1, 2)
 			end
-		else
-			return score
+		elsif ball == 2 then
+			combined_score = ball_score + score_array[index - 1]
+			if combined_score == 10 then #SPARE
+				@@frames << Frame.new(frame_number, combined_score, "spare")
+				score(score_array, frame_number + 1, index + 1, 1)
+			else #RECORD SCORE, GO TO NEXT FRAME
+				@@frames << Frame.new(frame_number, combined_score)
+				score(score_array, frame_number + 1, index + 1, 1)
+			end
+		end
+	end
+
+	def print_frames
+		@@frames.each do |frame|
+			puts "FRAME #{frame.number}: #{frame.score} #{frame.bonus}"
 		end
 	end
 end
 
+class Frame
+	attr_accessor :score, :bonus, :number
+	def initialize(number, score = 0, bonus = "")
+		@number = number
+		@score = score
+		@bonus = bonus
+	end
+end
+
 game = Game.new
-puts game.score([10,10,10,10,10,10,10,10,10,10,10])
+game.score([5, 3, 10, 10, 5, 5, 7, 2, 7, 3, 10, 10, 10, 10, 10, 10])
+game.print_frames
